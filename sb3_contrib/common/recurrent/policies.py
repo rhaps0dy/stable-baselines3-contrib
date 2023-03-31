@@ -166,7 +166,7 @@ class RecurrentActorCriticPolicy(ActorCriticPolicy):
         lstm_states: Tuple[th.Tensor, th.Tensor],
         episode_starts: th.Tensor,
         lstm: nn.LSTM,
-    ) -> Tuple[th.Tensor, th.Tensor]:
+    ) -> Tuple[th.Tensor, Tuple[th.Tensor, th.Tensor]]:
         """
         Do a forward pass in the LSTM network.
 
@@ -184,15 +184,44 @@ class RecurrentActorCriticPolicy(ActorCriticPolicy):
         # Batch to sequence
         # (padded batch size, features_dim) -> (n_seq, max length, features_dim) -> (max length, n_seq, features_dim)
         # note: max length (max sequence length) is always 1 during data collection
-        features_sequence = features.reshape((n_seq, -1, lstm.input_size)).swapaxes(0, 1)
-        episode_starts = episode_starts.reshape((n_seq, -1)).swapaxes(0, 1)
+        if isinstance(features, dict):
+            features_shape = next(iter(features.values())).shape
+        else:
+            features_shape = features.shape
+        seq_len = features_shape[0] // n_seq
+        assert (
+            seq_len * n_seq == features_shape[0]
+        ), f"Invalid input shape {features_shape}: first dimension is not a collection of rollouts of size {seq_len} * {n_seq}"
+
+        if isinstance(features, dict):
+            features_sequence = {k: v.reshape((n_seq, seq_len, -1)).swapaxes(0, 1) for k, v in features.items()}
+        else:
+            features_sequence = features.reshape((n_seq, seq_len, -1)).swapaxes(0, 1)
+        lstm_states = (
+            lstm_states[0].view(lstm.num_layers, n_seq, lstm.hidden_size),
+            lstm_states[1].view(lstm.num_layers, n_seq, lstm.hidden_size),
+        )
+
+        episode_starts = episode_starts.reshape((n_seq, seq_len)).swapaxes(0, 1)
 
         # If we don't have to reset the state in the middle of a sequence
         # we can avoid the for loop, which speeds up things
-        if th.all(episode_starts == 0.0):
+        if th.all(episode_starts[1:] == 0.0):
+            # If we have to reset some at the beginning of the sequence
+            if not bool(th.all(episode_starts[0] == 0.0)):
+                episode_start = episode_starts[0]
+                lstm_states = lstm_states.__class__(
+                    (
+                        # Reset the states at the beginning of the sequence, if necessary
+                        (1.0 - episode_start).view(1, n_seq, 1) * lstm_states[0],
+                        (1.0 - episode_start).view(1, n_seq, 1) * lstm_states[1],
+                    )
+                )
             lstm_output, lstm_states = lstm(features_sequence, lstm_states)
             lstm_output = th.flatten(lstm_output.transpose(0, 1), start_dim=0, end_dim=1)
             return lstm_output, lstm_states
+
+        raise RuntimeError("Should never get here if code is efficient")
 
         lstm_output = []
         # Iterate over the sequence
