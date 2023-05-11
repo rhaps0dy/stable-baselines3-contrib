@@ -3,6 +3,82 @@
 Changelog
 ==========
 
+Release 2.0.0a8 (WIP)
+--------------------------
+
+**Gymnasium support**
+
+.. warning::
+
+  Stable-Baselines3 (SB3) v2.0 will be the last one supporting python 3.7 (end of life in June 2023).
+  We highly recommended you to upgrade to Python >= 3.8.
+
+
+Breaking Changes:
+^^^^^^^^^^^^^^^^^
+- Switched to Gymnasium as primary backend, Gym 0.21 and 0.26 are still supported via the ``shimmy`` package (@carlosluis, @arjun-kg, @tlpss)
+- Upgraded to Stable-Baselines3 >= 2.0.0
+
+New Features:
+^^^^^^^^^^^^^
+
+Bug Fixes:
+^^^^^^^^^^
+- Fixed QRDQN update interval for multi envs
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Others:
+^^^^^^^
+- Fixed ``sb3_contrib/tqc/*.py`` type hints
+- Fixed ``sb3_contrib/trpo/*.py`` type hints
+- Fixed ``sb3_contrib/common/envs/invalid_actions_env.py`` type hints
+
+
+Documentation:
+^^^^^^^^^^^^^^
+- Update documentation, switch from Gym to Gymnasium
+
+Release 1.8.0 (2023-04-07)
+--------------------------
+
+.. warning::
+
+  Stable-Baselines3 (SB3) v1.8.0 will be the last one to use Gym as a backend.
+  Starting with v2.0.0, Gymnasium will be the default backend (though SB3 will have compatibility layers for Gym envs).
+  You can find a migration guide here: https://gymnasium.farama.org/content/migration-guide/.
+  If you want to try the SB3 v2.0 alpha version, you can take a look at `PR #1327 <https://github.com/DLR-RM/stable-baselines3/pull/1327>`_.
+
+
+Breaking Changes:
+^^^^^^^^^^^^^^^^^
+- Removed shared layers in ``mlp_extractor`` (@AlexPasqua)
+- Upgraded to Stable-Baselines3 >= 1.8.0
+
+New Features:
+^^^^^^^^^^^^^
+- Added ``stats_window_size`` argument to control smoothing in rollout logging (@jonasreiher)
+
+Bug Fixes:
+^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Others:
+^^^^^^^
+- Moved to pyproject.toml
+- Added github issue forms
+- Fixed Atari Roms download in CI
+- Fixed ``sb3_contrib/qrdqn/*.py`` type hints
+- Switched from ``flake8`` to ``ruff``
+
+Documentation:
+^^^^^^^^^^^^^^
+- Added warning about potential crashes caused by ``check_env`` in the ``MaskablePPO`` docs (@AlexPasqua)
+
+
 Release 1.7.0 (2023-01-10)
 --------------------------
 
@@ -379,4 +455,4 @@ Contributors:
 -------------
 
 @ku2482 @guyk1971 @minhlong94 @ayeright @kronion @glmcdona @cyprienc @sgillen @Gregwar @rnederstigt @qgallouedec
-@mlodel @CppMaster @burakdmb @honglu2875 @ZikangXiong @AlexPasqua
+@mlodel @CppMaster @burakdmb @honglu2875 @ZikangXiong @AlexPasqua @jonasreiher
