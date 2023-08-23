@@ -1,7 +1,7 @@
 import sys
 import time
 from collections import deque
-from typing import Any, Dict, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, ClassVar, Dict, Optional, Tuple, Type, TypeVar, Union
 
 import numpy as np
 import torch as th
@@ -69,7 +69,7 @@ class MaskablePPO(OnPolicyAlgorithm):
     :param _init_setup_model: Whether or not to build the network at the creation of the instance
     """
 
-    policy_aliases: Dict[str, Type[BasePolicy]] = {
+    policy_aliases: ClassVar[Dict[str, Type[BasePolicy]]] = {
         "MlpPolicy": MlpPolicy,
         "CnnPolicy": CnnPolicy,
         "MultiInputPolicy": MultiInputPolicy,
@@ -222,8 +222,8 @@ class MaskablePPO(OnPolicyAlgorithm):
         self.start_time = time.time_ns()
         if self.ep_info_buffer is None or reset_num_timesteps:
             # Initialize buffers if they don't exist, or reinitialize if resetting counters
-            self.ep_info_buffer = deque(maxlen=100)
-            self.ep_success_buffer = deque(maxlen=100)
+            self.ep_info_buffer = deque(maxlen=self._stats_window_size)
+            self.ep_success_buffer = deque(maxlen=self._stats_window_size)
 
         if reset_num_timesteps:
             self.num_timesteps = 0
